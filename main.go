@@ -98,10 +98,22 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 
-	// 添加环境变量信息
-	sb.WriteString("\n=== 环境变量 ===\n")
-	for _, env := range os.Environ() {
-		sb.WriteString(env + "\n")
+	// 添加筛选后的环境变量信息
+	sb.WriteString("\n=== 指定环境变量 ===\n")
+	echoEnv := os.Getenv("ECHO_ENV")
+	if echoEnv != "" {
+		// 解析要显示的环境变量名
+		envVarsToShow := strings.Split(echoEnv, ",")
+		for _, envName := range envVarsToShow {
+			envName = strings.TrimSpace(envName)
+			if envValue, exists := os.LookupEnv(envName); exists {
+				sb.WriteString(fmt.Sprintf("%s: %s\n", envName, envValue))
+			} else {
+				sb.WriteString(fmt.Sprintf("%s: (未设置)\n", envName))
+			}
+		}
+	} else {
+		sb.WriteString("ECHO_ENV 环境变量未设置，无指定环境变量可显示\n")
 	}
 	sb.WriteString("\n")
 
