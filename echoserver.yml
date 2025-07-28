@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: echo
-        image: registry.cn-hangzhou.aliyuncs.com/iuxt/echoserver:1.10
+        image: registry.cn-hangzhou.aliyuncs.com/iuxt/go-echoserver:2025-07-29
         ports:
         - containerPort: 8080
         env:
