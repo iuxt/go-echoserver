@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 )
@@ -15,7 +14,10 @@ func main() {
 	http.HandleFunc("/", echoHandler)
 
 	// 启动服务器
-	port := "8080"
+	port := os.Getenv("SERVER_PORT")
+	if port == "" {
+		port = "8080" // 默认端口
+	}
 	fmt.Printf("Echo Server 正在监听端口 %s...\n", port)
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		fmt.Printf("服务器启动失败: %v\n", err)
@@ -28,13 +30,6 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 	var sb strings.Builder
 
 	sb.WriteString("=== Echo Server 响应 ===\n\n")
-
-	// 添加环境变量信息
-	sb.WriteString("=== 环境变量 ===\n")
-	for _, env := range os.Environ() {
-		sb.WriteString(env + "\n")
-	}
-	sb.WriteString("\n")
 
 	// 添加请求基本信息
 	sb.WriteString("=== 请求信息 ===\n")
@@ -101,6 +96,15 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+
+
+	// 添加环境变量信息
+	sb.WriteString("\n=== 环境变量 ===\n")
+	for _, env := range os.Environ() {
+		sb.WriteString(env + "\n")
+	}
+	sb.WriteString("\n")
+
 
 	// 发送响应
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
