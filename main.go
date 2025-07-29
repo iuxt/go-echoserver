@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -39,11 +40,18 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 	sb.WriteString(fmt.Sprintf("主机: %s\n", r.Host))
 	sb.WriteString(fmt.Sprintf("远程地址: %s\n", r.RemoteAddr))
 
-	// 添加请求头
-	sb.WriteString("\n=== 请求头 ===\n")
-	for name, headers := range r.Header {
-		for _, h := range headers {
-			sb.WriteString(fmt.Sprintf("%v: %v\n", name, h))
+	// 获取并排序请求头键名
+	headerKeys := make([]string, 0, len(r.Header))
+	for k := range r.Header {
+		headerKeys = append(headerKeys, k)
+	}
+	sort.Strings(headerKeys)
+
+	// 按排序后的顺序输出请求头
+	sb.WriteString("\n=== 请求头(按字母顺序排序) ===\n")
+	for _, k := range headerKeys {
+		for _, v := range r.Header[k] {
+			sb.WriteString(fmt.Sprintf("%s: %s\n", k, v))
 		}
 	}
 
@@ -69,7 +77,7 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			// 将读取的内容重新放回Body
 			r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-			
+
 			// 添加原始请求体
 			sb.WriteString("\n=== 原始请求体 ===\n")
 			if len(bodyBytes) == 0 {
@@ -97,7 +105,6 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-
 	// 添加筛选后的环境变量信息
 	sb.WriteString("\n=== 指定环境变量 ===\n")
 	echoEnv := os.Getenv("ECHO_ENV")
@@ -116,7 +123,6 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 		sb.WriteString("ECHO_ENV 环境变量未设置，无指定环境变量可显示\n")
 	}
 	sb.WriteString("\n")
-
 
 	// 发送响应
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
