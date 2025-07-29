@@ -8,6 +8,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -27,6 +28,9 @@ func main() {
 }
 
 func echoHandler(w http.ResponseWriter, r *http.Request) {
+	// 记录请求开始时间
+	startTime := time.Now()
+
 	// 创建响应构建器
 	var sb strings.Builder
 
@@ -48,7 +52,7 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 	sort.Strings(headerKeys)
 
 	// 按排序后的顺序输出请求头
-	sb.WriteString("\n=== 请求头(按字母顺序排序) ===\n")
+	sb.WriteString("\n=== 请求头 ===\n")
 	for _, k := range headerKeys {
 		for _, v := range r.Header[k] {
 			sb.WriteString(fmt.Sprintf("%s: %s\n", k, v))
@@ -123,6 +127,14 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 		sb.WriteString("ECHO_ENV 环境变量未设置，无指定环境变量可显示\n")
 	}
 	sb.WriteString("\n")
+
+	// 计算处理耗时
+	processingTime := time.Since(startTime)
+	sb.WriteString(fmt.Sprintf("\n请求处理耗时: %v\n", processingTime))
+
+	// 添加当前时间
+	currentTime := time.Now().Format(time.RFC3339)
+	sb.WriteString(fmt.Sprintf("当前时间: %s\n", currentTime))
 
 	// 发送响应
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
